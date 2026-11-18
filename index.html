@@ -295,6 +295,17 @@ footer {
   background: radial-gradient(circle at 35% 35%, #d62d5a, #7a0f2c);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
 }
+/* Keep the seal still under hover and press; only the click moves it */
+.seal,
+.seal:hover,
+.seal:active {
+  transform: translate(-50%, -50%);
+}
+.letter.open .seal {
+  transform: translate(-50%, -170%) scale(1.2);
+  opacity: 0;
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
 .seal::after {
   display: none;
 }
