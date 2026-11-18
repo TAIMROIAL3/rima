@@ -1,0 +1,243 @@
+<meta charset="utf-8">
+<title>Sorry my queen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap">
+<style>
+:root {
+  --bg: #fbf6f0;
+  --fg: #2a1f22;
+  --muted: #7a6269;
+  --accent: #9b2c4a;
+  --card: #fff8f3;
+  --line: #ead9d0;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1518;
+    --fg: #f6ebe7;
+    --muted: #b9a0a7;
+    --accent: #e07a98;
+    --card: #261c20;
+    --line: #3d2c32;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1518;
+  --fg: #f6ebe7;
+  --muted: #b9a0a7;
+  --accent: #e07a98;
+  --card: #261c20;
+  --line: #3d2c32;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Tajawal", system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.9;
+  padding-block: 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+h1 {
+  font-size: clamp(2rem, 8vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.3;
+  margin: 0 0 0.3em;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.flowers {
+  font-size: 1.6rem;
+  letter-spacing: 0.4em;
+  margin-bottom: 8px;
+}
+.flowers span {
+  display: inline-block;
+  animation: sway 4s ease-in-out infinite;
+}
+.flowers span:nth-child(2) { animation-delay: -1s; }
+.flowers span:nth-child(3) { animation-delay: -2s; }
+.flowers span:nth-child(4) { animation-delay: -3s; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 22px;
+  margin-top: 16px;
+}
+
+.bloom {
+  font-size: 4.5rem;
+  line-height: 1.2;
+  min-height: 1.4em;
+}
+.bloom.pop {
+  animation: pop 0.45s ease-out;
+}
+
+.msg {
+  font-size: 1.25rem;
+  font-weight: 700;
+  min-height: 3.2em;
+  margin: 8px 0 4px;
+  text-wrap: balance;
+}
+
+.counter {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 14px;
+}
+
+button {
+  font: inherit;
+  font-weight: 700;
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 26px;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+footer {
+  margin-top: 36px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flowers span, .bloom.pop { animation: none; }
+}
+</style>
+
+<main dir="rtl" lang="ar">
+  <div class="flowers" aria-hidden="true"><span>🌹</span><span>🌸</span><span>🌷</span><span>💐</span><span>🌼</span></div>
+  <h1>ملكتي، بدي اعتذر</h1>
+
+  <div class="card">
+    <div class="bloom" id="bloom" aria-hidden="true">🌼</div>
+    <p class="msg" id="msg" aria-live="polite">بدي اعتذرلك بطريقتي</p>
+    <p class="counter" id="counter">0 / 5</p>
+    <button id="next" type="button">كملي</button>
+  </div>
+
+  <footer>آسف من كل قلبي</footer>
+</main>
+
+<script>
+  (function () {
+    var steps = [
+      { f: "🌹", t: "ولا وردة تكفي تعتذرلك، بس هاي أول وردة." },
+      { f: "🌸", t: "عارف إني غلطت، وما بدي أبرر ولا كلمة." },
+      { f: "🌷", t: "لو فيني ارجع بالوقت كنت ما غلطت هالغلط التافه متلي" },
+      { f: "💐", t: "إنتي أغلى شي عندي، وما بدي أخسرك." },
+      { f: "🤍", t: "سامحتيني ملكتي؟" }
+    ];
+    var thanks = [
+      "شكرا كتييير ملكتي ❤️❤️"
+    ];
+    // one soft note per step, rising like a small melody
+    var notes = [523.25, 587.33, 659.25, 783.99, 880];
+
+    var bloom = document.getElementById("bloom");
+    var msg = document.getElementById("msg");
+    var counter = document.getElementById("counter");
+    var button = document.getElementById("next");
+    var pressed = 0;     // how many apology steps have been shown (0..5)
+    var thanksIndex = 0;
+    var soundOn = true;
+    var audioCtx = null;
+
+    // Synthesized tones (no audio file needed). The browser only allows sound
+    // after a click, so the first press creates the audio context.
+    function play(freqs) {
+      if (!soundOn) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        var now = audioCtx.currentTime;
+        freqs.forEach(function (f, i) {
+          var start = now + i * 0.12;
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = f;
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(0.18, start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + 1.0);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(start);
+          osc.stop(start + 1.05);
+        });
+      } catch (e) {
+        // Sound is unavailable here; the page still works without it.
+      }
+    }
+
+    function show(flower, text) {
+      bloom.textContent = flower;
+      msg.textContent = text;
+      bloom.classList.remove("pop");
+      void bloom.offsetWidth; // restart the animation
+      bloom.classList.add("pop");
+    }
+
+    button.addEventListener("click", function () {
+      if (pressed < steps.length) {
+        var idx = pressed;
+        var step = steps[idx];
+        pressed += 1;
+        show(step.f, step.t);
+        counter.textContent = pressed + " / " + steps.length;
+        if (pressed === steps.length) {
+          button.textContent = "إيه، سامحتك";
+          play([659.25, 783.99, 987.77]); // warm chord for the question
+        } else {
+          play([notes[idx]]);
+        }
+      } else {
+        show("❤️", thanks[thanksIndex % thanks.length]);
+        thanksIndex += 1;
+        counter.textContent = "";
+        play([783.99, 987.77, 1174.66]); // bright chord for the thank-you
+      }
+    });
+  })();
+</script>
