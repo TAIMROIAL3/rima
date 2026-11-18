@@ -236,6 +236,86 @@ footer {
   font-size: 0.95rem;
 }
 
+/* Sealed letter that opens before the page */
+.envelope-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: radial-gradient(circle at 50% 30%, #3a1823, #140b0e);
+  transition: opacity 0.8s ease, visibility 0.8s;
+}
+.envelope-wrap.gone {
+  opacity: 0;
+  visibility: hidden;
+}
+.letter {
+  position: relative;
+  width: min(82vw, 340px);
+  height: 210px;
+  background: linear-gradient(145deg, #fff4f6, #f7d9e0);
+  border-radius: 12px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 22px;
+  color: #7a0f2c;
+}
+.letter .flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(#e8a3b4, #d97a93);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  border-radius: 12px 12px 0 0;
+  transform-origin: top center;
+  transition: transform 0.8s ease;
+}
+.letter.open .flap {
+  transform: rotateX(180deg);
+}
+.seal {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  background: radial-gradient(circle at 35% 35%, #d62d5a, #7a0f2c);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.seal::after {
+  display: none;
+}
+.letter p {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* The page fades in once the letter is opened */
+main {
+  transition: opacity 1s ease, transform 1s ease;
+}
+body:not(.opened) main {
+  opacity: 0;
+  transform: translateY(20px);
+}
+body.opened main {
+  opacity: 1;
+  transform: none;
+}
+
 /* Slow glowing blobs behind everything */
 .blobs {
   position: fixed;
@@ -385,6 +465,14 @@ footer {
 
 <div class="petals" aria-hidden="true"><span>🌸</span><span>🌷</span><span>🌹</span><span>🌺</span><span>🌸</span><span>🌷</span><span>🌹</span><span>🌺</span></div>
 
+<div class="envelope-wrap" id="envelope">
+  <div class="letter" id="letter">
+    <div class="flap"></div>
+    <button class="seal" id="open" type="button" aria-label="افتحي الرسالة">🌹</button>
+    <p>افتحي الرسالة</p>
+  </div>
+</div>
+
 <div class="blobs" aria-hidden="true"><span></span><span></span><span></span></div>
 <div class="rain" id="rain" aria-hidden="true"></div>
 
@@ -518,6 +606,22 @@ footer {
         card.appendChild(h);
       }
     }
+
+    // Opening the sealed letter: flap lifts, then the page fades in.
+    var letter = document.getElementById("letter");
+    var envelope = document.getElementById("envelope");
+    var openBtn = document.getElementById("open");
+    var opening = false;
+    openBtn.addEventListener("click", function () {
+      if (opening) return;
+      opening = true;
+      letter.classList.add("open");
+      play([523.25, 659.25, 783.99, 1046.5]);
+      setTimeout(function () {
+        envelope.classList.add("gone");
+        document.body.classList.add("opened");
+      }, 900);
+    });
 
     button.addEventListener("click", function () {
       if (pressed < steps.length) {
