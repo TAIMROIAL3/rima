@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sorry my queen</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap">
@@ -111,8 +112,11 @@ button {
   color: #fff;
   border: 0;
   border-radius: 999px;
-  padding: 12px 26px;
+  padding: 14px 28px;
+  min-height: 48px;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:focus-visible {
@@ -138,6 +142,34 @@ footer {
   0% { transform: scale(0.6); opacity: 0; }
   70% { transform: scale(1.12); opacity: 1; }
   100% { transform: scale(1); }
+}
+/* Phone layout: bigger touch targets, tighter spacing, nothing wider than the screen */
+@media (max-width: 480px) {
+  body {
+    font-size: 16px;
+    padding-block: 28px;
+  }
+  h1 {
+    font-size: 1.9rem;
+  }
+  .flowers {
+    font-size: 1.3rem;
+    letter-spacing: 0.25em;
+  }
+  .card {
+    padding: 22px 16px;
+  }
+  .bloom {
+    font-size: 3.6rem;
+  }
+  .msg {
+    font-size: 1.1rem;
+    min-height: 4em;
+  }
+  button {
+    width: 100%;
+    font-size: 1.05rem;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .flowers span, .bloom.pop { animation: none; }
