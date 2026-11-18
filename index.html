@@ -190,7 +190,23 @@ button {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+button::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
+button:hover::after {
+  left: 125%;
 }
 button:hover {
   transform: translateY(-2px);
@@ -218,6 +234,94 @@ footer {
   margin-top: 36px;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+/* Slow glowing blobs behind everything */
+.blobs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.blobs span {
+  position: absolute;
+  top: -80px;
+  left: -100px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  filter: blur(70px);
+  opacity: 0.28;
+  animation: drift 22s ease-in-out infinite;
+}
+.blobs span:nth-child(2) {
+  top: auto;
+  left: auto;
+  bottom: -120px;
+  right: -90px;
+  background: var(--accent);
+  animation-duration: 28s;
+  animation-delay: -10s;
+}
+.blobs span:nth-child(3) {
+  top: 40%;
+  left: 55%;
+  width: 220px;
+  height: 220px;
+  background: #ffd0a8;
+  animation-duration: 34s;
+  animation-delay: -4s;
+}
+
+/* Sparkles around the flower */
+.sparkle {
+  position: absolute;
+  font-size: 1rem;
+  pointer-events: none;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.sparkle.a { top: 12%; left: 12%; }
+.sparkle.b { top: 22%; right: 14%; font-size: 0.8rem; animation-delay: -1.2s; }
+.sparkle.c { bottom: 18%; left: 18%; font-size: 0.85rem; animation-delay: -0.6s; }
+
+/* Hearts and roses falling after she forgives */
+.rain {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.rain span {
+  position: absolute;
+  top: -10%;
+  font-size: 1.1rem;
+  animation: rainfall linear forwards;
+}
+
+/* Blinking cursor while the message types out */
+.typing::after {
+  content: "|";
+  margin-inline-start: 2px;
+  opacity: 0.6;
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(60px, -40px) scale(1.1); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(20deg); }
+}
+@keyframes rainfall {
+  to { transform: translateY(115vh) rotate(180deg); }
+}
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 @keyframes sway {
@@ -272,7 +376,8 @@ footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .petals span, .flowers span, .bloom, .bloom.pop, .burst {
+  .petals span, .flowers span, .bloom, .bloom.pop, .burst,
+  .blobs span, .sparkle, .rain span, .typing::after {
     animation: none !important;
   }
 }
@@ -280,11 +385,17 @@ footer {
 
 <div class="petals" aria-hidden="true"><span>🌸</span><span>🌷</span><span>🌹</span><span>🌺</span><span>🌸</span><span>🌷</span><span>🌹</span><span>🌺</span></div>
 
+<div class="blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="rain" id="rain" aria-hidden="true"></div>
+
 <main dir="rtl" lang="ar">
   <div class="flowers" aria-hidden="true"><span>🌹</span><span>🌸</span><span>🌷</span><span>💐</span><span>🌼</span></div>
   <h1>ملكتي، بدي اعتذر</h1>
 
   <div class="card" id="card">
+    <span class="sparkle a" aria-hidden="true">✨</span>
+    <span class="sparkle b" aria-hidden="true">✨</span>
+    <span class="sparkle c" aria-hidden="true">✨</span>
     <div class="bloom" id="bloom" aria-hidden="true">🌼</div>
     <p class="msg" id="msg" aria-live="polite">بدي اعتذرلك بطريقتي</p>
     <div class="progress" id="progress" aria-hidden="true"><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span><span>❤️</span></div>
@@ -347,12 +458,50 @@ footer {
       }
     }
 
+    // Types the message out one character at a time.
+    var typeTimer = null;
+    function typeText(text) {
+      if (typeTimer) clearInterval(typeTimer);
+      if (reduceMotion) {
+        msg.textContent = text;
+        return;
+      }
+      var i = 0;
+      msg.textContent = "";
+      msg.classList.add("typing");
+      typeTimer = setInterval(function () {
+        i += 1;
+        msg.textContent = text.slice(0, i);
+        if (i >= text.length) {
+          clearInterval(typeTimer);
+          typeTimer = null;
+          msg.classList.remove("typing");
+        }
+      }, 35);
+    }
+
     function show(flower, text) {
       bloom.textContent = flower;
-      msg.textContent = text;
+      typeText(text);
       bloom.classList.remove("pop");
       void bloom.offsetWidth; // restart the animation
       bloom.classList.add("pop");
+    }
+
+    // A shower of hearts and roses falling down the whole page.
+    function rain() {
+      if (reduceMotion) return;
+      var layer = document.getElementById("rain");
+      var pieces = ["❤️", "💗", "🌹", "🌸", "✨"];
+      for (var i = 0; i < 28; i++) {
+        var s = document.createElement("span");
+        s.textContent = pieces[i % pieces.length];
+        s.style.left = (Math.random() * 100).toFixed(1) + "%";
+        s.style.animationDuration = (2.5 + Math.random() * 2.5).toFixed(2) + "s";
+        s.style.animationDelay = (Math.random() * 1.2).toFixed(2) + "s";
+        s.addEventListener("animationend", function (e) { e.currentTarget.remove(); });
+        layer.appendChild(s);
+      }
     }
 
     function burst() {
@@ -389,6 +538,7 @@ footer {
         show("❤️", thanks[thanksIndex % thanks.length]);
         thanksIndex += 1;
         burst();
+        rain();
         play([783.99, 987.77, 1174.66]); // bright chord for the thank-you
       }
     });
